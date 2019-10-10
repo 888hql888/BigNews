@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <title>大事件-后台登录页</title>
+  <link rel="stylesheet" type="text/css" href="css/reset.css" />
+  <link rel="stylesheet" type="text/css" href="css/iconfont.css" />
+  <link rel="stylesheet" type="text/css" href="css/main.css" />
+  <!-- 引入bootstrap的css文件 -->
+  <link rel="stylesheet" href="./libs/bootstrap/css/bootstrap.min.css" />
+  <!-- 引入jq文件 -->
+  <script src="./libs/jquery-1.12.4.min.js"></script>
+  <!-- 引入bootstrap的js文件 -->
+  <script src="./libs/bootstrap/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+  <div class="main_wrap">
+    <div class="header">
+      <a href="#" class="logo"><img src="images/logo.png" alt="" /></a>
+      <div class="copyright">
+        CopyRight © 2019 深圳百秀信息技术股份有限公司<br />All Rights Reserved
+      </div>
+    </div>
+
+    <div class="login_form_con">
+      <div class="login_title"></div>
+      <form class="login_form" action="http://www.itheima.com">
+        <i class="iconfont icon-user"></i>
+        <i class="iconfont icon-key"></i>
+        <input type="text" class="input_txt" placeholder="邮箱/手机号" />
+        <input type="password" class="input_pass" placeholder="密码" />
+        <input type="submit" class="input_sub" value="登 录" />
+      </form>
+    </div>
+  </div>
+
+  <!-- 模态框 -->
+  <div class="modal fade" tabindex="-1" role="dialog" id="myModal">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+              aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title">友情提示</h4>
+        </div>
+        <div class="modal-body">
+          <p>One fine body&hellip;</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-success" data-dismiss="modal">确认</button>
+
+        </div>
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div><!-- /.modal -->
+
+  <script>
+    //入口函数
+    $(function () {
+      /* 1.登录按钮点击事件
+      *** 注意点： 表单按钮需要阻止默认跳转行为 ***
+      1.1 非空判断
+      1.2 获取用户名和密码
+      1.3 ajax发送请求
+      1.4 响应数据之后 跳转 首页
+       */
+      $('.input_sub').click(function (e) {
+        e.preventDefault();
+        //1.1 非空判断
+        if ($('.input_txt').val().trim().length == 0 || $('.input_pass').val().trim().length == 0) {
+          //alert('请输入用户名和密码');
+          //使用bootstrap的模态框
+          //(1)修改模态框提示信息
+          $('.modal-body>p').text('请输入用户名和密码');
+          //(2)弹出模态框
+          $('#myModal').modal();
+          return;
+        };
+        //1.2 获取用户名和密码
+        //1.3 ajax发送请求
+        $.ajax({
+          url: 'http://localhost:8080/api/v1/admin/user/login',
+          type: 'post',
+          dataType: 'json',
+          data: {
+            username: $('.input_txt').val(),
+            password: $('.input_pass').val()
+          },
+          success: function (backData) {
+            console.log(backData);
+            //1.4 响应数据之后 跳转 首页
+            if (backData.code == 200) {
+              // alert('登录成功');
+              //(1)修改模态框提示信息
+              $('.modal-body>p').text('登录成功');
+              //(2)弹出模态框
+              $('#myModal').modal();
+              //(3)用户点击确认之后跳转首页 (用户点击确认，模态框消失之后触发)
+              $('#myModal').on('hidden.bs.modal', function (e) {
+                // do something...
+                //将服务器返回的token存入localstorage
+                localStorage.setItem('token',backData.token);
+                //跳转首页
+                window.location.href = './index.html';
+              });
+            } else {
+              //alert(backData.msg);
+              //(1)修改模态框提示信息
+              $('.modal-body>p').text(backData.msg);
+              //(2)弹出模态框
+              $('#myModal').modal();
+            }
+          }
+        });
+
+      });
+    });
+  </script>
+
+</body>
+
+</html>
