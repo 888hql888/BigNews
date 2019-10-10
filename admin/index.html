@@ -25,65 +25,150 @@
         </div>
         <!-- 左侧导航栏 -->
         <div class="menu">
-            <div class="level01 active"><a href="#" target="main_frame"><i
+            <div class="level01 active"><a href="./main_count.html" target="main_frame"><i
                         class="iconfont icon-yidiandiantubiao04"></i><span>首页</span></a></div>
             <div class="level01"><a href="#"><i class="iconfont icon-icon-article"></i><span>文章管理</span><b
                         class="iconfont icon-arrowdownl"></b></a></div>
             <ul class="level02">
-                <li><a href="#" target="main_frame"><i class="iconfont icon-previewright"></i><span>文章列表</span></a></li>
-                <li><a href="#" target="main_frame"><i class="iconfont icon-previewright"></i><span>发表文章</span></a></li>
-                <li><a href="#" target="main_frame"><i class="iconfont icon-previewright"></i><span>文章类别管理</span></a>
+                <li><a href="./article_list.html" target="main_frame"><i class="iconfont icon-previewright"></i><span>文章列表</span></a></li>
+                <li><a href="./article_release.html" target="main_frame"><i class="iconfont icon-previewright"></i><span>发表文章</span></a></li>
+                <li><a href="./article_category.html" target="main_frame"><i class="iconfont icon-previewright"></i><span>文章类别管理</span></a>
                 </li>
             </ul>
 
-            <div class="level01"><a href="#" target="main_frame"><i
+            <div class="level01"><a href="./comment_list.html" target="main_frame"><i
                         class="iconfont icon-comment"></i><span>评论管理</span></a></div>
-            <div class="level01" id="user"><a href="#" target="main_frame"><i
+            <div class="level01" id="user"><a href="./user.html" target="main_frame"><i
                         class="iconfont icon-user"></i><span>个人中心</span></a></div>
         </div>
         <!-- 顶部栏 -->
         <div class="header_bar">
             <div class="user_center_link">
-                <a href="./user.html" target="main_frame">个人中心</a>
+                <a href="./user.html" target="main_frame" onclick="$('#user').click">个人中心</a>
                 <img src="images/2.jpg" alt="person">
                 <a href="javascript:void(0)" class="logout"><i class="iconfont icon-tuichu"></i> 退出</a>
             </div>
         </div>
         <!-- 右侧主体内容 -->
         <div class="main" id="main_body">
-
+            <iframe src="./main_count.html" frameborder="0" style="width:100%;height:100%" name="main_frame"></iframe>
         </div>
     </div>
-
     <script>
-        //入口函数
-        $(function(){
+    </script>
+<script src="./libs/http.js"></script>
+<!-- <script src="./js/index.js"></script> -->
+<script>
+
+    //入口函数
+    $(function(){
             /* 
             1.页面一加载：ajax请求个人信息
              */
             $.ajax({
-                url:'http://localhost:8080/api/v1/admin/user/info',
+                url:BigNew.user_info,
                 type:'get',
                 dataType:'json',
                 success: function(backData){
                     console.log(backData);
+                     //渲染个人信息数据
+                     $('.user_info>span').text('欢迎  ' + backData.data.nickname);
+                     $('.user_info>img').attr('src', backData.data.userPic);
+                     $('.user_center_link>img').attr('src', backData.data.userPic);
                 }
             });
 
-            // //(1).实例化ajax对象
-            // var xhr = new XMLHttpRequest();
-            // //(2).设置请求方法和地址
-            // //get请求的数据直接添加在url的后面 格式是 url?key=value
-            // xhr.open('get', 'http://localhost:8080/api/v1/admin/user/info');
-            // //设置请求头 ： 将token发送给服务器
-            // xhr.setRequestHeader('Authorization',localStorage.getItem('token'));
-            // //(3).发送请求
-            // xhr.send();
-            // //(4).注册回调函数
-            // xhr.onload = function() {
-            //     console.log(xhr.responseText)
-            // };
+            //退出功能
+            $('.logout').click(function(){
+                console.log('1111');
+                //清除token
+                localStorage.removeItem('token');
+                //跳转到登录页
+                window.location.href='./login.html';
+               
+            })
+
+            //点击一级菜单实现高亮
+            // $('.level01').click(function(){
+            //     //1.点击对应盒子高亮显示
+            //     $(this).addClass('active').siblings().removeClass('active');
+            //     //2.1点击可以展开/收缩 ul
+            //     if($(this).index()==1){
+            //         $('.level02').slideToggle();
+            //         //2.2点击实现箭头的动画效果
+            //         //细节: jq中 children()只能找 当前元素的子元素没办法找后代元素
+            //         //     寻找 当前元素的后代元素只能使用 find()
+            //         $(this).find('b').toggleClass('rotate0');
+
+            //         //2.3.1 二级标签第一个高亮
+            //         // 核心
+            //         // 1.事件冒泡
+            //         // 1.1 点击a标签 冒泡触发 父元素 li 的高亮事件
+
+            //         // 2.a标签默认事件(跳转网页):
+            //         // 2.x扩展: 学过的默认事件 a标签和form标签
+            //         // a标签:默认跳转 href
+            //         // form标签: action 默认跳转 (点击form元素触发跳转 需要 e.preventDefault()
+
+            //         // 3.jq和原生js的 click()事件差异
+            //         // 3.1jq事件 只触发自身绑定的事件
+            //         // 3.2原生js 触发默认事件和绑定事件
+
+            //         // 2.1原生js和jq中都有一个同名的 click()方法(比较特殊)
+            //         // 2.1.1 jq中的click方法 只会触发自己绑定点击事件(这里没绑定,由于事件冒泡触发了li的高亮事件)
+            //         //  不会触发a标签默认的href跳转事件
+            //         // 2.2.2原生的js会触发两个事件: 默认事件和绑定的事件
+            //         // (这里是触发了 a标签跳转事件 使得ifname能跳转到对应页面)
+            //         // (这里没有a标签的绑定事件,只是由于事件冒泡触发了a标签父元素的 li 高亮事件)
+                    
+            //         //2.3显示对应ifname的页面 并 使得默认第一个li文字高亮
+            //         $('.level02 li:eq(0) a')[0].click();
+
+            //     }
+            //     else{
+            //         //点击其它一级标签 ,取消二级菜单的高亮
+            //         $('.level02>li').removeClass('active');
+            //     }
+                
+                
+            //     //2.4点击了 文章的一级标签 再点击其它 一级标签 将二级标签的高亮取消
+
+            // })
+
+            // //点击实现文章管理二级菜单的高亮
+            // $('.level02 li').click(function(){
+            //     $(this).addClass('active').siblings().removeClass('active');
+            // })
+
+            //点击一级标签高亮显示
+            $('.level01').click(function(){
+                $(this).addClass('active').siblings().removeClass('active');
+                //点击文章管理展开二级标签
+                if($(this).index()==1){
+                    //当ul高度为0展开,高度为一定值点击时候缩回
+                    $('.level02').slideToggle();
+                    //改变箭头的方向,动态添加 rotate0类
+                    //1.注意 children()和find()区别,前者查找只能查找子代,后者可以查找后代.
+                    $(this).find('b').addClass('rotate0')
+                    //默认展示 第一个二级标签页面和文字高亮效果
+                    //1.a标签的事件冒泡触发li标签的高亮
+                    //2.原生js的click事件 触发a标签默认行为
+                    //3.主动触发点击事件.click()  通过事件触发器 .trigger('.click')触发的和 .click()效果一样.
+                    $('.level02 li a:eq(0)')[0].click();
+                }
+                else{
+                    //点击其它一级标签 取消二级标签的文字高亮
+                    $('.level02 li').removeClass('active');
+                }
+            })
+            //二级标签高亮显示
+            $('.level02 li').click(function(){
+                $(this).addClass('active').siblings().removeClass('active');
+            })
+
+           
         });
-    </script>
+    
+</script>
 </body>
 </html>

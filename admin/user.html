@@ -44,12 +44,18 @@
                     <label for="inputPassword3" class="col-sm-2 control-label">用户图标：</label>
                     <div class="col-sm-10">
                         <img src="images/2.jpg" alt="" class="user_pic">
-                        <input style="display: block" name="userPic" type="file" id="exampleInputFile">
-                        <!-- 给label标签的for属性赋值,值是input标签的id,那这样的话点击label就相当于点击了input -->
+
+                        <input style="display: none" name="userPic" type="file" id="exampleInputFile">                
                         <br>
+                         <!-- 给label标签的for属性赋值,值是input标签的id,那这样的话点击label就相当于点击了input -->
+
+                         <!-- 使用label标签包裹img标签 来修改 原生input的样式 -->
+                         <!-- 将原生的input设置 display:none 隐藏丑丑的样式 -->
+                         <!-- 利用 laber 的 for属性 和input的id属性,保证 input标签文件上传功能的正常 -->
                         <label for="exampleInputFile">
-                            <img src="./images/uploads_icon.jpg" style="height: 50px;" alt="">
+                            <img src="./images/shangchuan.png" style="height: 50px;" alt="">
                         </label>
+
                     </div>
                 </div>
 
@@ -68,6 +74,73 @@
             </form>
         </div>
     </div>
+    <script src="./libs/http.js"></script>
+    <script>
+        $(function(){
+            //渲染个人数据详情
+            $.ajax({
+                url:BigNew.user_detail,
+                type:'get',
+                dataType:'json',
+                data:'',
+                success: function(backData){
+                   //渲染数据
+                   //由于 渲染的类名和数据的属性名一致 所以使用 遍历对象方法渲染 (.类名).val()
+                   //但是由于 userPic是要设置图片的地址所以单独设置
+                   //由于jquery的容错性,所以 $('.userPic').val()并不会报错!!
+                   for(var key in backData.data){
+                       //设置对应类名的value值
+                       $('.'+key).val(backData.data[key]);
+                   }
+                   //单独设置路径
+                   $('.user_pic').attr('src',backData.data.userPic);
+                }
+            });
+            //图片预览
+            //1.给file表单元素注册onchange事件
+            $('#exampleInputFile').change(function () {
+                //1.2 获取用户选择的图片
+                var file = this.files[0];
+                //1.3 将文件转为src路径
+                var url = URL.createObjectURL(file);
+                //1.4 将url路径赋值给img标签的src
+                $('.user_pic').attr('src', url);
+            });
+
+            //包含文件夹的数据提交
+            $('.btn-edit').on('click',function(e){
+                //禁用表单默认提交事件
+                e.preventDefault();
+                //创建FormData对象：参数是表单dom对象
+                var fd = new FormData($('#form')[0]);
+                $.ajax({
+                    url:BigNew.user_edit,
+                    type:'post',
+                    dataType:'json',
+                    data:fd,
+                    contentType: false,
+                    processData: false,
+                    success: function(backData){
+                        console.log(backData);
+                        if(backData.code==200){
+                            alert('修改成功');
+                            //返回并刷新index.html页面
+                            //当前是在ifranme的user.html中
+
+                            //当前的window指的是 user.html页面 应该在上级 到index.html页面
+                            //使用 window.parent属性
+
+                            window.parent.location.reload();
+
+                        }
+                        
+
+
+                    }
+                });
+            });
+        })
+    </script>
 </body>
 
 </html>
