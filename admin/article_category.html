@@ -51,5 +51,184 @@
             </table>
         </div>
     </div>
+    <!-- 模态框 -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="exampleModalLabel">文章分类</h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="recipient-name" class="control-label">分类名称:</label>
+                            <input type="text" class="form-control" id="recipient-name">
+                        </div>
+                        <div class="form-group">
+                            <label for="message-text" class="control-label">分类别名:</label>
+                            <input class="form-control" id="message-text" />
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default btn-cancel" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary btn-confirm">新增 || 编辑</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 分类模板引擎 -->
+    <script id="sort" type="text/html">
+
+    {{ each data v}}
+    <tr>
+            <td>{{v.name}}</td>
+            <td>{{v.slug}}</td>
+            <td class="text-center">
+                <a href="javascript:void(0);" data-toggle="modal" data-target="#myModal" class=" btn btn-info btn-xs btn-edit" data-id="{{v.id}}">编辑</a>
+                <a href="javascript:void(0);" class="btn btn-danger btn-xs delete" data-id="{{v.id}}">删除</a>
+            </td>
+        </tr>
+    {{/each}}
+</script>
+    <script src="./libs/http.js"></script>
+    <script>
+        //入口函数
+        $(function () {
+            //1.页面一加载发送ajax请求数据
+            $.ajax({
+                url: BigNew.category_list,
+                type: 'get',
+                dataType: 'json',
+                success: function (backData) {
+                    console.log(backData);
+                    //模板引擎渲染页面 
+                    $('.category_table>tbody').html(template('sort', backData));
+                }
+            });
+
+            /*技术难点 
+            1.点击新增按钮与编辑按钮都要弹出模态框
+            2.新增按钮的业务逻辑与编辑按钮业务逻辑不同
+                新增按钮弹出的模态框
+                    (1)表单文本清空
+                    (2)点击取消，清空表单文本方便下一次添加
+                    (3)点击新增：ajax发送请求给服务器
+                        url:/admin/category/add
+                        参数： name : 分类名称  slug:分类别名
+                编辑按钮弹出的模态框
+                    (1)表单文本为当前点击编辑的文字类别数据
+                    (2)点击取消：清空表单文本方便下一次编辑
+                    (3)点击编辑：ajax发送请求给服务器
+                        url:/admin/category/edit
+                        参数：name : 分类名称  slug:分类别名 id:编辑的文字id
+            
+            解决方案：结合bootstrap官方文档模态框使用
+            1.给新增按钮与编辑按钮a标签设置行内属性：data-toggle="modal" data-target="#myModal"
+                作用：点击a标签自动弹出模态框
+            2.给模态框注册事件 $('#myModal').on('show.bs.modal', function (e) {})
+                作用：弹出模态框之前会执行这个事件处理函数
+                e.relatedTarget : 获取弹出模态框的事件触发源（点击哪个a弹出来的）
+            3.给模态框的取消按钮和确认按钮注册事件
+                取消按钮：隐藏模态框，并且清空表单文本： dom表单.reset()
+                确认按钮：
+                    如果e.relatedTarget是新增 ->则执行新增按钮逻辑
+                    如果e.relatedTarget是编辑 ->则执行编辑按钮逻辑
+            */
+
+            //模态框注册事件 模态框出现之前
+            $('#myModal').on('shown.bs.modal', function (e) {
+                //获取事件源 注意!! e.relatedTarget是DOM对象
+                console.log(e.relatedTarget);
+                //修改模态框确认按钮为 新增 或 编辑
+                if (e.relatedTarget == $('#xinzengfenlei')[0]) {
+                    $('.btn-confirm').text('新增');
+                }
+                else {
+                    $('.btn-confirm').text('编辑');
+                    //通过e.rerelatedTarget
+                    //传递文章的name
+                     $('#recipient-name').val($(e.relatedTarget).parent().prev().prev().text()),
+                     //传递文章的slug
+                     $('#message-text').val($(e.relatedTarget).parent().prev().text())
+                    //将当前点击的 编辑的 按钮id 传递给模态框的
+                    $('.btn-confirm').attr('data-id',$(e.relatedTarget).attr('data-id'));
+                    
+                }
+            })
+
+            //3.确认按钮点击事件
+            $('.btn-confirm').on('click', function () {
+                //模态框为新增则发送新增的ajax请求
+                if ($(this).text() == '新增') {
+                    $.ajax({
+                        url: BigNew.category_add,
+                        type: 'post',
+                        dataType: 'json',
+                        data: {
+                            name: $('#recipient-name').val(),
+                            slug: $('#message-text').val()
+                        },
+                        success: function (backData) {
+                            if (backData.code == 201) {
+                                alert('新增成功')
+                                window.location.reload();
+                            }
+                        }
+                    });
+                }
+                //点击模态框为 '编辑'时 则发送 编辑的ajax请求
+                else{
+                    $.ajax({
+                        url:BigNew.category_edit,
+                        type:'post',
+                        dataType:'json',
+                        data:{
+                            //$(this)此时指模态框的 编辑按钮 .btn-confirm
+                            id:$(this).attr('data-id'),
+                            name: $('#recipient-name').val(),
+                            slug: $('#message-text').val()
+                        },
+                        success: function(backData){
+                            console.log(backData);
+                            if(backData.code==200){
+                                alert('修改成功');
+                                //刷新页面
+                                window.location.reload();
+                            }
+                        }
+                    });
+                }
+            })
+           
+
+
+            //4.删除按钮 ：这个按钮是动态添加的，所以需要注册委托事件
+            //注意点：注册委托事件的父元素不能是动态添加的，否则无法委托
+            $('body').on('click','.delete',function(){
+                $.ajax({
+                    url:BigNew.category_delete,
+                    type:'post',
+                    dataType:'json',
+                    data:{
+                        id:$(this).attr('data-id')
+                    },
+                    success: function(backData){
+                        console.log(backData);
+                        if(backData.code==204){
+                            alert('删除成功');
+                            window.location.reload();
+                        }
+                    }
+                });
+            })
+
+            //编辑文章类别
+
+        });
+
+    </script>
 
 </html>
