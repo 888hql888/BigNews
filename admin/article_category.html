@@ -87,6 +87,8 @@
             <td>{{v.name}}</td>
             <td>{{v.slug}}</td>
             <td class="text-center">
+                <!-- 使用绑定元素 data-toggle和data-target 实现点击弹出模态框 -->
+                <!-- 弹出模态框两种方式:1.js代码实现 2.绑定元素 -->
                 <a href="javascript:void(0);" data-toggle="modal" data-target="#myModal" class=" btn btn-info btn-xs btn-edit" data-id="{{v.id}}">编辑</a>
                 <a href="javascript:void(0);" class="btn btn-danger btn-xs delete" data-id="{{v.id}}">删除</a>
             </td>

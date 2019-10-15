@@ -12,6 +12,9 @@
     <link rel="stylesheet" type="text/css" href="css/main.css">
     <script type="text/javascript" src="js/jquery-1.12.4.min.js"></script>
     <script type="text/javascript" src="js/jquery.pagination.min.js"></script>
+    <link rel="stylesheet" href="./libs/bootstrap/css/bootstrap.min.css">
+    <script src="./libs/jquery.twbsPagination.js"></script>
+
 </head>
 
 <body>
@@ -58,10 +61,6 @@
 
     <div class="main_con clearfix">
         <div class="left_con setfr">
-
-            <div class="list_title">
-                <h3>科 技</h3>
-            </div>
 
             <div class="common_news_list">
                 <a href="#" class="list_pic"><img src="images/pic09.jpg" alt=""></a>
@@ -136,18 +135,6 @@
             </div>
 
             <div id="pagination" class="page"></div>
-            <script>
-                $(function () {
-                    $("#pagination").pagination({
-                        currentPage: 2,
-                        totalPage: 8,
-                        callback: function (current) {
-                            alert('ok!');
-                        }
-                    });
-                });
-            </script>
-
         </div>
         <div class="right_con setfl">
             <div class="common_wrap">
@@ -210,6 +197,9 @@
                 </ul>
             </div>
         </div>
+        <div class="row text-center">
+            <ul id="pagination" class="pagination-sm"></ul>
+        </div>
     </div>
 
     <div class="footer clearfix">
@@ -227,6 +217,90 @@
     </div>
     <!-- 导包template -->
     <script src="./js/template-web.js"></script>
+
+    <!-- 文章模板 -->
+    <script id="art_list" type="text/html">
+        {{ each data.data v }}
+        <div class="common_news_list">
+                <a href="#" class="list_pic"><img src="{{v.cover}}" alt=""></a>
+                <h4><a href="#">{{v.title}} </a></h4>
+                <p>{{v.content}}</p>
+                <div class="new_info">
+                    <span>标签：{{v.category}}&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<i class="fa fa-eye"></i>&nbsp;阅读( {{v.read}}
+                        )&nbsp;&nbsp;&nbsp;<i class="fa fa-commenting"></i>&nbsp;评论( {{v.comments}} )</span>
+                    <b>发布于 {{v.date}}</b>
+                </div>
+        </div>
+        {{/each}}
+    </script>
+    <script>
+
+        $(function () {
+            //默认加载
+            artList(1, true);
+
+            //点击筛选按钮
+            $('.search_btn').click(function () {
+                $.ajax({
+                    url: 'http://localhost:8080/api/v1/index/search',
+                    type: 'get',
+                    dataType: 'json',
+                    data: {
+                        key: $('.search_txt').val().trim()
+        },
+                    success: function (backData) {
+                        if (backData.code == 200) {
+                            $('.left_con').html(template('art_list', backData));
+                        }
+                    }
+                });
+            });
+
+            //渲染页面数据
+            function artList(currentPage, flag) {
+                $.ajax({
+                    url: 'http://localhost:8080/api/v1/index/search',
+                    type: 'get',
+                    dataType: 'json',
+                    data: {
+                        page: currentPage,
+                        perpage: 10
+                    },
+                    success: function (backData) {
+                        console.log(backData);
+                        if (backData.code == 200) {
+                            $('.left_con').html(template('art_list', backData));
+                            if (flag) {
+                                loadPagination(backData.data.totalCount / 10, currentPage);
+                            }
+                        }
+                    }
+                });
+            }
+
+            function loadPagination(totalPages, startPage) {
+                //(1)先销毁上一次的分页数据
+                $('#pagination').twbsPagination('destroy');
+                //(2)加载分页插件
+                $('#pagination').twbsPagination({
+                    totalPages: totalPages,
+                    startPage: startPage,
+                    visiblePages: 10,
+                    first: '首页',
+                    prev: '上一页',
+                    next: '下一页',
+                    last: '尾页',
+                    onPageClick: function (event, page) {
+                        //如果点击的页数与当前页数不一致，则发送ajax请求
+                        //结束宿递归的条件
+                        console.log(page);
+                        artList(page);
+                    }
+                });
+            };
+        })
+
+    </script>
 </body>
 
 </html>

@@ -190,8 +190,45 @@
 
 
             /*4.删除 ：  */
-            /* 5.编辑 ： a标签href跳转（页面间传参） */
-            /* 6.发布 ： a标签href跳转 */
+            //动态添加的元素使用事件委托注册
+            $('.table>tbody').on('click','.delete',function(){
+              var id=$(this).attr('data-id');
+              $.ajax({
+                  url:BigNew.article_delete,
+                  type:'post',
+                  dataType:'json',
+                  data:{
+                      id:id
+                  },
+                  success: function(backData){
+                    if(backData.code==204){
+                        alert('删除成功');
+                        window.location.reload();
+                    }
+                  }
+              });
+            })
+            
+            //点击发布功能
+
+           //侧边栏 发布文章二级列表高亮 : 主动触发二级列表的点击事件
+
+            // 由于两个页面不同,当前页面没有.level02>li:eq(1)
+            // level02>li是属于 index.html页面的 而当前页面是 article_list.fa-html
+            //使用 $()的 第二个参数 window.parent.document得到
+            
+                /*    $的两个参数
+                $('选择器',DOM树) ： 第二个参数 默认是当前  window.document
+                        window.parent.document : 父窗口的dom树
+                
+                $('选择器') ： 当前页面查找元素    默认第二个参数是当前DOM树
+                $('选择器',window.parent.document) ： 父页面查找元素    
+                */
+               
+               $('#release_btn').click(function(){
+                 $('.level02>li:eq(1)',window.parent.document).trigger('click');
+               })
+               
         });
     </script>
 </body>

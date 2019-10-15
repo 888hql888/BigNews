@@ -93,11 +93,12 @@
                     <input type="submit" name="" value="评 论" class="comment_sub"></div>
             </form>
 
-            <div class="comment_count">
-                4条评论
-            </div>
+
 
             <div class="comment_list_con">
+                <div class="comment_count">
+                    4条评论
+                </div>
                 <div class="comment_detail_list">
                     <div class="person_pic fl">乔</div>
                     <div class="name_time fl"><b>虚竹</b><span>4小时前</span></div>
@@ -205,9 +206,111 @@
         <p>电话：0755-****888 粤ICP备*******8号</p>
     </div>
 
+
     <!-- 引入模板引擎js文件 -->
     <script src="./js/template-web.js"></script>
     <script src="./js/jquery-1.12.4.min.js"></script>
+
+    <!-- 1.文章详情 -->
+    <!-- <script id="author_list" type="text/html">
+        {{data.author}} &nbsp;&nbsp;发布于&nbsp;&nbsp;分类:{{data.category}}&nbsp;&nbsp;阅读:&nbsp;&nbsp;
+        ({{data.read}})&nbsp;&nbsp;评论: ({{data.comments}})
+    </script> -->
+
+    <!-- 评论列表 -->
+    <script id="com_list" type="text/html">
+        <div class="comment_list_con">
+                <div class="comment_count">
+                   {{data.length}}条评论
+                </div>
+                {{each data v}}
+                <div class="comment_detail_list">
+                    <div class="person_pic fl"> {{v.author.substr(0,1)}}</div>
+                    <div class="name_time fl"><b>{{v.author}}</b><span>{{v.date}}</span></div>
+                    <div class="comment_text fl">
+                        {{v.content}}
+                    </div>
+                </div>
+                {{/each}}
+                
+            </div>
+    </script>
+
+    <script src="./js/jquery-1.12.4.min.js"></script>
+    <script>
+        // 入口函数
+        $(function () {
+            //需求: 显示点击过来的文章详情.
+            //1.获取点击过来的文章id
+            var id = window.location.search.split("=")[1];
+            //2.根据id获取文章详情.
+            $.ajax({
+                type: 'get',
+                url: 'http://localhost:8080/api/v1/index/article',
+                data: {
+                    id: id
+                },
+                success: function (backData) {
+                    console.log(backData);
+                    if (backData.code == 200) {
+                        //注意返回的内容包含html标签的话要使用 .html()渲染 使用.text()没办法解析html标签
+                        $('.article_title').text(backData.data.title);
+                        //模板引擎渲染 复杂的 作者 时间等发布条
+                        $('.article_info').html(
+                            '' + backData.data.author + ' 发布于 ' + backData.data.date + '  分类: ' + backData.data.category + '  阅读: ( ' + backData.data.read + ')评论: (' + backData.data + ')'
+                        )
+                        $('.article_con').html(backData.data.content);
+
+                    }
+                }
+            });
+
+            //渲染评论
+            $.ajax({
+                url: 'http://localhost:8080/api/v1/index/get_comment',
+                type: 'get',
+                dataType: 'json',
+                data: {
+                    articleId: id
+                },
+                success: function (backData) {
+                    console.log(backData);
+                    if (backData.code == 200) {
+                        $('.comment_list_con').html(template('com_list', backData));
+                    }
+                }
+            });
+
+            //点击按钮发表评论
+            $('.comment_sub').click(function (e) {
+                e.preventDefault();
+                // 1.非空判断
+                if ($('.comment_name').val().trim().length == 0 || $('.comment_input').val().trim().length == 0) {
+                    alert('用户名或者内容不能为空');
+                    return;
+                }
+                $.ajax({
+                    url: 'http://localhost:8080/api/v1/index/post_comment',
+                    type: 'post',
+                    dataType: 'json',
+                    data: {
+                        author: $('.comment_name').val().trim(),
+                        content: $('.comment_input').val().trim(),
+                        articleId: id
+
+                    },
+                    success: function (backData) {
+                        console.log(backData);
+                        if(backData.code==201){
+                            alert('修改成功');
+                            window.location.reload();
+                        }
+                    }
+                });
+            })
+
+        });
+    </script>
 
 </body>
 

@@ -9,6 +9,18 @@
     <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/font-awesome.min.css">
     <link rel="stylesheet" href="css/main.css">
+
+    <!-- 导入模板引擎js文件 -->
+    <script src="./js/template-web.js"></script>
+
+    <!-- 引入分页插件所需要文件 -->
+    <!-- 1.引入分页依赖的bootstrap文件 -->
+    <script src="./libs/bootstrap/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="./libs/bootstrap/css/bootstrap.min.css">
+    <!-- 2.引入分页插件 -->
+   <script src="./libs/jquery-1.12.4.min.js"></script>
+   <script src="./libs/jquery.twbsPagination.js"></script>
+
 </head>
 
 <body>
@@ -143,6 +155,12 @@
                         <b>发布于 2018-08-30 12:18:58</b>
                     </div>
                 </div>
+                
+            </div>
+            <!-- 分页插件 -->
+            <div class="row text-center">
+                    <!-- 分页插件HTML -->
+                 <ul id="pagination" class="pagination-sm"></ul>
             </div>
 
         </div>
@@ -207,6 +225,7 @@
                 </ul>
             </div>
         </div>
+
     </div>
 
     <div class="footer clearfix">
@@ -223,10 +242,169 @@
         <p>电话：0755-****888 粤ICP备*******8号</p>
     </div>
 
-    <!-- 导入模板引擎js文件 -->
-    <script src="./js/template-web.js"></script>
-    <!-- 引入jq文件 -->
-    <script src="./js/jquery-1.12.4.min.js"></script>
+    
+   
+
+    <!-- 焦点轮播图引擎 -->
+    <script id="focus_news" type="text/html">
+        {{ each data v}}
+        {{ if $index==0}}
+        <li class="first">
+        {{ else }}
+         <li>
+        {{/if}}
+          <a href="./article.html?id={{v.id}}"><img src="{{v.cover}}" alt=""></a>
+           <p>{{v.title}}</p>
+         </li>
+       {{/each}}
+    </script>
+    <!-- 分类列表 -->
+    <script id="cat_list" type="text/html">
+        {{each data v}}
+        <li><a href="./list.html?id={{v.id}}&amp;name={{v.name}}">{{v.name}}</a></li>
+        {{/each}}
+    </script>
+    <!-- 03-最新资讯 -->
+    <script id="latest_list" type="text/html">
+        {{ each data v }}
+        <div class="common_news_list">
+            <a href="./article.html?id={{ v.id }}" class="list_pic"><img src="{{ v.cover }}" alt=""></a>
+            <h4><a href="./article.html?id={{ v.id }}">{{ v.title }}</a></h4>
+            <p>{{@ v.intro }}
+            </p>
+            <div class="new_info">
+                <span>标签：{{ v.category }}&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<i class="fa fa-eye"></i>&nbsp;阅读( {{ v.read }}
+                    )&nbsp;&nbsp;&nbsp;<i class="fa fa-commenting"></i>&nbsp;评论( {{ v.comments }} )</span>
+                <b>发布于 {{ v.date }}</b>
+            </div>
+        </div>
+        {{ /each }}
+    </script>
+    <!-- 热门排行 -->
+    <script id="hot-rank" type="text/html">
+        {{each data v}}
+        <li><span class="first">1</span><a href="./article.html?id={{v.id}}">{{v.title}}</a></li>
+        {{/each}}
+    </script>
+    <!-- 5.最新评论模板 -->
+    <script id="comment" type="text/html">
+    {{ each data v}}
+    <li>
+        <span>{{ v.author.substr(0,1) }}</span>
+        <b><em>{{ v.author }}</em> {{ v.date }}说:</b>
+        <strong>{{ v.intro }}</strong>
+    </li>
+    {{ /each }}
+    </script>
+    <!-- 焦点关注 -->
+    <!-- 6.焦点关注模板 -->
+    <script id="guanzhu" type="text/html">
+    {{ each data v}}
+    <li>
+        <a href="javascript:void(0);">{{ v.intro }}</a>
+    </li>
+    {{ /each }}
+    </script>
+    <script>
+        $(function () {
+            //1.渲染焦点轮播图
+            $.ajax({
+                url: 'http://localhost:8080/api/v1/index/hotpic',
+                type: 'get',
+                dataType: 'json',
+                data: '',
+                success: function (backData) {
+                    console.log(backData);
+                    //渲染
+                    $('.focus_list').html(template('focus_news', backData));
+                }
+            });
+            //2.分类列表
+            $.ajax({
+                url: 'http://localhost:8080/api/v1/index/category',
+                type: 'get',
+                dataType: 'json',
+                data: '',
+                success: function (backData) {
+                    console.log(backData);
+                    $('.level_two').html(template('cat_list', backData))
+                }
+            });
+            //3.最新资讯
+            $.ajax({
+                url: 'http://localhost:8080/api/v1/index/latest',
+                type: 'get',
+                dataType: 'json',
+                data: '',
+                success: function (backData) {
+                    console.log(backData);
+                    if (backData.code == 200) {
+                        $('.common_news').html(template('latest_list', backData))
+                        //加载分页插件
+                        loadPagination(backData.data.length,1);
+                    }
+                }
+            });
+            //4.热门排行
+            $.ajax({
+                url: 'http://localhost:8080/api/v1/index/rank',
+                type: 'get',
+                dataType: 'json',
+                data: '',
+                success: function (backData) {
+                    console.log(backData);
+                    if (backData.code == 200) {
+                        $('.hotrank_list').html(template('hot-rank', backData))
+                    }
+                }
+            });
+            //5.评论
+            $.ajax({
+                url: 'http://localhost:8080/api/v1/index/latest_comment',
+                type: 'get',
+                dataType: 'json',
+                success: function (backData) {
+                    console.log(backData);
+                    $('.comment_list').html(template('comment', backData));
+                }
+            });
+            //6.焦点关注
+            $.ajax({
+                url: 'http://localhost:8080/api/v1/index/attention',
+                type: 'get',
+                dataType: 'json',
+                success: function (backData) {
+                    console.log(backData);
+                    $('.guanzhu_list').html(template('guanzhu', backData));
+                }
+            });
+
+
+            function loadPagination(totalPages, startPage) {
+                //(1)先销毁上一次的分页数据
+                $('#pagination').twbsPagination('destroy');
+                //(2)加载分页插件
+                $('#pagination').twbsPagination({
+                    totalPages: totalPages,
+                    startPage: startPage,
+                    visiblePages: 6,
+                    first: '首页',
+                    prev: '上一页',
+                    next: '下一页',
+                    last: '尾页',
+                    onPageClick: function (event, page) {
+                        //如果点击的页数与当前页数不一致，则发送ajax请求
+                        if (page != startPage) {
+                            console.log('当前页：' + startPage);
+                            console.log('点击页：' + page);
+
+                        };
+                    }
+                });
+            };
+
+        })
+    </script>
 </body>
 
 </html>
